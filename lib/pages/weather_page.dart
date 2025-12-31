@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'dart:ui';
 import 'dart:async';
 import '../model/weather_model.dart';
 import '../model/forecast_model.dart';
 import '../services/weather_service.dart';
 import '../services/favorite_city_service.dart';
-import '../services/vietnam_cities.dart';
+import '../services/openweathermap_cities.dart';
 import '../services/weather_history_service.dart';
 import '../services/weather_alert_service.dart';
 import 'search_city_page.dart';
 import 'compare_cities_page.dart';
 import 'statistics_page.dart';
+import 'tourism_page.dart';
 
 class WeatherPage extends StatefulWidget {
   const WeatherPage({super.key});
@@ -53,12 +53,8 @@ class _WeatherPageState extends State<WeatherPage> {
         // Cập nhật tên thành phố trong danh sách yêu thích nếu khác
         // (ví dụ: "Bình Định" -> "Quy Nhơn")
         // Đảm bảo tên có dấu
-        final actualCityName = VietnamCities.getCityNameWithAccents(
-          weather.cityName,
-        );
-        final cityNameWithAccents = VietnamCities.getCityNameWithAccents(
-          cityName,
-        );
+        final actualCityName = weather.cityName;
+        final cityNameWithAccents = cityName;
         if (actualCityName != cityNameWithAccents &&
             _favoriteCities.contains(cityName)) {
           await _favoriteService.removeFavoriteCity(cityName);
@@ -166,8 +162,8 @@ class _WeatherPageState extends State<WeatherPage> {
       // Tìm và xóa các biến thể không dấu
       final favoriteCities = await _favoriteService.getFavoriteCities();
       for (final favCity in favoriteCities) {
-        final favCityWithAccents = VietnamCities.getCityNameWithAccents(
-          favCity,
+        final favCityWithAccents = OpenWeatherMapCities.getDisplayName(
+          OpenWeatherMapCities.getApiName(favCity),
         );
         if (favCityWithAccents == cityName && favCity != cityName) {
           await _favoriteService.removeFavoriteCity(favCity);
@@ -186,7 +182,9 @@ class _WeatherPageState extends State<WeatherPage> {
     // Cập nhật tên có dấu cho tất cả thành phố
     final updatedCities = <String>[];
     for (final city in cities) {
-      final cityWithAccents = VietnamCities.getCityNameWithAccents(city);
+      final cityWithAccents = OpenWeatherMapCities.getDisplayName(
+        OpenWeatherMapCities.getApiName(city),
+      );
       updatedCities.add(cityWithAccents);
       // Nếu tên đã thay đổi, cập nhật trong storage
       if (cityWithAccents != city) {
@@ -329,6 +327,18 @@ class _WeatherPageState extends State<WeatherPage> {
                             );
                           },
                           tooltip: 'Thống kê',
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.beach_access, color: Colors.white),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => TourismPage(),
+                              ),
+                            );
+                          },
+                          tooltip: 'Du lịch',
                         ),
                       ],
                     ),
@@ -889,7 +899,9 @@ class _WeatherPageState extends State<WeatherPage> {
                               final city = _favoriteCities[index];
                               // Đảm bảo hiển thị tên có dấu
                               final cityWithAccents =
-                                  VietnamCities.getCityNameWithAccents(city);
+                                  OpenWeatherMapCities.getDisplayName(
+                                    OpenWeatherMapCities.getApiName(city),
+                                  );
                               final isSelected =
                                   _weather?.cityName == cityWithAccents ||
                                   _weather?.cityName == city;

@@ -84,12 +84,15 @@ class _CompareCitiesPageState extends State<CompareCitiesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFF87CEEB), // Màu nền cuối cùng của gradient
       appBar: AppBar(
         title: Text('So sánh thành phố'),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
       ),
       body: Container(
+        width: double.infinity,
+        height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,

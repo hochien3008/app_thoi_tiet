@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../services/weather_service.dart';
 import '../services/favorite_city_service.dart';
-import '../services/vietnam_cities.dart';
+import '../services/openweathermap_cities.dart';
+import 'supported_cities_page.dart';
 
 class SearchCityPage extends StatefulWidget {
   final Function(String) onCitySelected;
@@ -36,7 +37,8 @@ class _SearchCityPageState extends State<SearchCityPage> {
     final query = _searchController.text.trim();
     if (query.isNotEmpty) {
       setState(() {
-        _suggestions = VietnamCities.searchCities(query);
+        // Chỉ hiển thị các thành phố có trong API, với tên tiếng Việt có dấu
+        _suggestions = OpenWeatherMapCities.searchCities(query);
         _errorMessage = null;
       });
     } else {
@@ -74,10 +76,13 @@ class _SearchCityPageState extends State<SearchCityPage> {
     });
 
     try {
+      // Chuyển đổi tên tiếng Việt sang tên API
+      final apiName = OpenWeatherMapCities.getApiName(cityName);
+      
       // Thử lấy thời tiết để kiểm tra thành phố có tồn tại không
-      await _weatherService.getWeather(cityName);
+      await _weatherService.getWeather(apiName);
 
-      // Nếu thành công, chọn thành phố này
+      // Nếu thành công, chọn thành phố này (giữ nguyên tên tiếng Việt để hiển thị)
       widget.onCitySelected(cityName);
       Navigator.pop(context);
     } catch (e) {
@@ -90,19 +95,12 @@ class _SearchCityPageState extends State<SearchCityPage> {
   }
 
   Future<void> _toggleFavorite(String cityName) async {
-    // Đảm bảo lưu tên có dấu
-    final cityNameWithAccents = VietnamCities.getCityNameWithAccents(cityName);
-    // Kiểm tra cả tên có dấu và không dấu
-    final isFavorite =
-        await _favoriteService.isFavorite(cityName) ||
-        await _favoriteService.isFavorite(cityNameWithAccents);
+    // Tên đã có dấu từ OpenWeatherMapCities, không cần chuyển đổi
+    final isFavorite = await _favoriteService.isFavorite(cityName);
     if (isFavorite) {
-      // Xóa cả hai biến thể
       await _favoriteService.removeFavoriteCity(cityName);
-      await _favoriteService.removeFavoriteCity(cityNameWithAccents);
     } else {
-      // Lưu tên có dấu
-      await _favoriteService.addFavoriteCity(cityNameWithAccents);
+      await _favoriteService.addFavoriteCity(cityName);
     }
     _loadFavoriteCities();
   }
@@ -162,13 +160,27 @@ class _SearchCityPageState extends State<SearchCityPage> {
                       icon: Icon(Icons.arrow_back, color: Color(0xFF2C3E50)),
                       onPressed: () => Navigator.pop(context),
                     ),
-                    Text(
-                      'Tìm kiếm thành phố',
-                      style: TextStyle(
-                        color: Color(0xFF2C3E50),
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: Text(
+                        'Tìm kiếm thành phố',
+                        style: TextStyle(
+                          color: Color(0xFF2C3E50),
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.info_outline, color: Color(0xFF2C3E50)),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SupportedCitiesPage(),
+                          ),
+                        );
+                      },
+                      tooltip: 'Xem danh sách tên thành phố được hỗ trợ',
                     ),
                   ],
                 ),
@@ -361,9 +373,7 @@ class _SearchCityPageState extends State<SearchCityPage> {
                     itemCount: _favoriteCities.length,
                     itemBuilder: (context, index) {
                       final city = _favoriteCities[index];
-                      // Chuyển đổi tên thành phố sang có dấu để hiển thị
-                      final cityWithAccents =
-                          VietnamCities.getCityNameWithAccents(city);
+                      // Tên đã có dấu từ OpenWeatherMapCities
                       return Container(
                         margin: EdgeInsets.symmetric(
                           horizontal: 16,
@@ -386,7 +396,7 @@ class _SearchCityPageState extends State<SearchCityPage> {
                             color: Color(0xFF3498DB),
                           ),
                           title: Text(
-                            cityWithAccents,
+                            city,
                             style: TextStyle(
                               color: Color(0xFF2C3E50),
                               fontWeight: FontWeight.w500,

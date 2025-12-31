@@ -1,4 +1,4 @@
-import '../services/vietnam_cities.dart';
+import '../services/openweathermap_cities.dart';
 
 class Forecast {
   final DateTime date;
@@ -39,7 +39,8 @@ class Forecast {
       tempMin: main['temp_min'].toDouble(),
       tempMax: main['temp_max'].toDouble(),
       mainCondition: weather['main'] as String,
-      description: weather['description'] as String? ?? weather['main'] as String,
+      description:
+          weather['description'] as String? ?? weather['main'] as String,
       icon: weather['icon'] as String? ?? '01d',
       humidity: main['humidity'] as int? ?? 0,
       windSpeed: (wind?['speed'] as num?)?.toDouble() ?? 0.0,
@@ -55,18 +56,19 @@ class ForecastResponse {
   final String cityName;
   final List<Forecast> forecasts;
 
-  ForecastResponse({
-    required this.cityName,
-    required this.forecasts,
-  });
+  ForecastResponse({required this.cityName, required this.forecasts});
 
   factory ForecastResponse.fromJson(Map<String, dynamic> json) {
     final city = json['city'] as Map<String, dynamic>;
     final rawCityName = city['name'] as String;
-    final cityNameWithAccents = VietnamCities.getCityNameWithAccents(rawCityName);
-    
+    final cityNameWithAccents = OpenWeatherMapCities.getDisplayName(
+      rawCityName,
+    );
+
     final list = json['list'] as List<dynamic>;
-    final forecasts = list.map((item) => Forecast.fromJson(item as Map<String, dynamic>)).toList();
+    final forecasts = list
+        .map((item) => Forecast.fromJson(item as Map<String, dynamic>))
+        .toList();
 
     return ForecastResponse(
       cityName: cityNameWithAccents,
@@ -77,28 +79,30 @@ class ForecastResponse {
   // Nhóm dự báo theo ngày và tính min/max nhiệt độ cho mỗi ngày
   List<Forecast> getDailyForecasts() {
     final Map<String, List<Forecast>> dailyForecastsMap = {};
-    
+
     // Nhóm tất cả forecast theo ngày
     for (final forecast in forecasts) {
-      final dateKey = '${forecast.date.year}-${forecast.date.month}-${forecast.date.day}';
+      final dateKey =
+          '${forecast.date.year}-${forecast.date.month}-${forecast.date.day}';
       if (!dailyForecastsMap.containsKey(dateKey)) {
         dailyForecastsMap[dateKey] = [];
       }
       dailyForecastsMap[dateKey]!.add(forecast);
     }
-    
+
     // Tạo danh sách forecast với min/max đã tính toán
     final List<Forecast> dailyForecasts = [];
-    
+
     for (final entry in dailyForecastsMap.entries) {
       final dayForecasts = entry.value;
-      
+
       // Tìm min và max từ tất cả forecast trong ngày
       double minTemp = dayForecasts.first.tempMin;
       double maxTemp = dayForecasts.first.tempMax;
-      
-      Forecast? bestForecast; // Forecast gần giữa ngày nhất (12:00) để lấy icon và mô tả
-      
+
+      Forecast?
+      bestForecast; // Forecast gần giữa ngày nhất (12:00) để lấy icon và mô tả
+
       for (final forecast in dayForecasts) {
         // So sánh với tempMin và tempMax của từng forecast
         if (forecast.tempMin < minTemp) minTemp = forecast.tempMin;
@@ -106,7 +110,7 @@ class ForecastResponse {
         // Cũng kiểm tra temp hiện tại
         if (forecast.temp < minTemp) minTemp = forecast.temp;
         if (forecast.temp > maxTemp) maxTemp = forecast.temp;
-        
+
         // Chọn forecast gần giữa ngày nhất (12:00) để lấy icon và mô tả
         if (bestForecast == null) {
           bestForecast = forecast;
@@ -118,7 +122,7 @@ class ForecastResponse {
           }
         }
       }
-      
+
       // Tạo forecast mới với min/max đã tính toán
       if (bestForecast != null) {
         final updatedForecast = Forecast(
@@ -137,7 +141,7 @@ class ForecastResponse {
         dailyForecasts.add(updatedForecast);
       }
     }
-    
+
     return dailyForecasts..sort((a, b) => a.date.compareTo(b.date));
   }
 
@@ -145,10 +149,12 @@ class ForecastResponse {
   List<Forecast> getHourlyForecasts() {
     final now = DateTime.now();
     final tomorrow = now.add(Duration(hours: 24));
-    
+
     return forecasts
-        .where((forecast) =>
-            forecast.date.isAfter(now) && forecast.date.isBefore(tomorrow))
+        .where(
+          (forecast) =>
+              forecast.date.isAfter(now) && forecast.date.isBefore(tomorrow),
+        )
         .toList()
       ..sort((a, b) => a.date.compareTo(b.date));
   }
@@ -157,7 +163,7 @@ class ForecastResponse {
   Map<String, double> getTodayMinMaxTemp() {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    
+
     // Lấy tất cả forecast trong ngày hôm nay
     final todayForecasts = forecasts.where((forecast) {
       final forecastDate = DateTime(
@@ -167,21 +173,21 @@ class ForecastResponse {
       );
       return forecastDate.isAtSameMomentAs(today);
     }).toList();
-    
+
     if (todayForecasts.isEmpty) {
       // Nếu không có forecast cho hôm nay, lấy từ các forecast tiếp theo
       final nextForecasts = forecasts
           .where((forecast) => forecast.date.isAfter(now))
           .take(8)
           .toList();
-      
+
       if (nextForecasts.isEmpty) {
         return {'min': 0.0, 'max': 0.0};
       }
-      
+
       double minTemp = nextForecasts.first.tempMin;
       double maxTemp = nextForecasts.first.tempMax;
-      
+
       for (final forecast in nextForecasts) {
         if (forecast.tempMin < minTemp) minTemp = forecast.tempMin;
         if (forecast.tempMax > maxTemp) maxTemp = forecast.tempMax;
@@ -189,14 +195,14 @@ class ForecastResponse {
         if (forecast.temp < minTemp) minTemp = forecast.temp;
         if (forecast.temp > maxTemp) maxTemp = forecast.temp;
       }
-      
+
       return {'min': minTemp, 'max': maxTemp};
     }
-    
+
     // Tìm min và max từ các forecast trong ngày
     double minTemp = todayForecasts.first.tempMin;
     double maxTemp = todayForecasts.first.tempMax;
-    
+
     for (final forecast in todayForecasts) {
       // So sánh với tempMin và tempMax của từng forecast
       if (forecast.tempMin < minTemp) minTemp = forecast.tempMin;
@@ -205,8 +211,7 @@ class ForecastResponse {
       if (forecast.temp < minTemp) minTemp = forecast.temp;
       if (forecast.temp > maxTemp) maxTemp = forecast.temp;
     }
-    
+
     return {'min': minTemp, 'max': maxTemp};
   }
 }
-

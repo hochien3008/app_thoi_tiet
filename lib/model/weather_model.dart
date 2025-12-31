@@ -1,4 +1,4 @@
-import '../services/vietnam_cities.dart';
+import '../services/openweathermap_cities.dart';
 
 class Weather {
   final String cityName;
@@ -43,7 +43,7 @@ class Weather {
     final rawCityName = json['name'] as String;
 
     // Chuyển đổi sang tên có dấu nếu là thành phố Việt Nam
-    final cityNameWithAccents = VietnamCities.getCityNameWithAccents(
+    final cityNameWithAccents = OpenWeatherMapCities.getDisplayName(
       rawCityName,
     );
 
