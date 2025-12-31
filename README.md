@@ -1,6 +1,13 @@
-# weather_app
+# SkyCast
 
-A new Flutter project.
+SkyCast - Weather Forecast App
+
+Ứng dụng dự báo thời tiết với các tính năng:
+- Dự báo thời tiết theo thành phố
+- So sánh thời tiết giữa các thành phố
+- Thống kê thời tiết
+- Điểm du lịch và đánh giá
+- Lưu thành phố yêu thích
 
 ## Getting Started
 

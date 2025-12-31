@@ -334,7 +334,9 @@ class _WeatherPageState extends State<WeatherPage> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => TourismPage(),
+                                builder: (context) => TourismPage(
+                                  initialCity: _weather?.cityName,
+                                ),
                               ),
                             );
                           },
@@ -357,12 +359,12 @@ class _WeatherPageState extends State<WeatherPage> {
                       ? Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            CircularProgressIndicator(color: Color(0xFF3498DB)),
+                            CircularProgressIndicator(color: Colors.white),
                             SizedBox(height: 20),
                             Text(
                               "Đang tải dữ liệu...",
                               style: TextStyle(
-                                color: Color(0xFF2C3E50),
+                                color: Colors.white,
                                 fontSize: 18,
                                 fontWeight: FontWeight.w500,
                               ),

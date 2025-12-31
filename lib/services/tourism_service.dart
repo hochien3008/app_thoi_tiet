@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../model/weather_model.dart';
 import 'tourism_image_service.dart';
+import 'openweathermap_cities.dart';
 
 class TouristAttraction {
   final String id;
@@ -606,10 +607,29 @@ class TourismService {
 
   // Lấy danh sách điểm du lịch theo thành phố
   static List<TouristAttraction> getAttractionsByCity(String cityName) {
-    return _attractions
-        .where((attraction) =>
-            attraction.city.toLowerCase() == cityName.toLowerCase())
-        .toList();
+    // Chuyển đổi tên thành phố về dạng hiển thị chuẩn (có dấu)
+    final displayName = OpenWeatherMapCities.getDisplayName(
+      OpenWeatherMapCities.getApiName(cityName),
+    );
+    
+    // So sánh không phân biệt hoa thường và dấu
+    final cityNameLower = OpenWeatherMapCities.removeVietnameseAccents(
+      cityName.toLowerCase(),
+    );
+    final displayNameLower = OpenWeatherMapCities.removeVietnameseAccents(
+      displayName.toLowerCase(),
+    );
+    
+    return _attractions.where((attraction) {
+      final attractionCityLower = OpenWeatherMapCities.removeVietnameseAccents(
+        attraction.city.toLowerCase(),
+      );
+      // So sánh với cả tên gốc và tên đã chuyển đổi
+      return attractionCityLower == cityNameLower ||
+          attractionCityLower == displayNameLower ||
+          attraction.city.toLowerCase() == cityName.toLowerCase() ||
+          attraction.city.toLowerCase() == displayName.toLowerCase();
+    }).toList();
   }
 
   // Lấy điểm du lịch theo ID

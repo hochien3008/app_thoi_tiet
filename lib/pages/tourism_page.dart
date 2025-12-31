@@ -10,7 +10,9 @@ import 'search_city_page.dart';
 import 'attraction_detail_page.dart';
 
 class TourismPage extends StatefulWidget {
-  const TourismPage({super.key});
+  final String? initialCity;
+
+  const TourismPage({super.key, this.initialCity});
 
   @override
   State<TourismPage> createState() => _TourismPageState();
@@ -29,7 +31,16 @@ class _TourismPageState extends State<TourismPage> {
   @override
   void initState() {
     super.initState();
-    _loadDefaultCity();
+    if (widget.initialCity != null && widget.initialCity!.isNotEmpty) {
+      // Sử dụng thành phố từ trang thời tiết
+      setState(() {
+        _selectedCity = widget.initialCity;
+      });
+      _loadCityData(widget.initialCity!);
+    } else {
+      // Nếu không có, lấy từ GPS
+      _loadDefaultCity();
+    }
   }
 
   Future<void> _loadDefaultCity() async {
@@ -52,13 +63,16 @@ class _TourismPageState extends State<TourismPage> {
     try {
       // Lấy thời tiết hiện tại
       final weather = await _weatherService.getWeather(cityName);
-      
-      // Lấy điểm du lịch
-      final attractions = TourismService.getAttractionsByCity(cityName);
-      
+
+      // Lấy điểm du lịch - sử dụng tên thành phố từ weather để đảm bảo khớp
+      final cityForAttractions = weather.cityName;
+      final attractions = TourismService.getAttractionsByCity(
+        cityForAttractions,
+      );
+
       // Lấy danh sách favorite
       final favoriteIds = await _favoriteService.getFavoriteIds();
-      
+
       setState(() {
         _currentWeather = weather;
         _attractions = attractions;
@@ -126,7 +140,11 @@ class _TourismPageState extends State<TourismPage> {
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.location_on, color: Colors.white, size: 24),
+                            Icon(
+                              Icons.location_on,
+                              color: Colors.white,
+                              size: 24,
+                            ),
                             SizedBox(width: 12),
                             Expanded(
                               child: Text(
@@ -138,8 +156,11 @@ class _TourismPageState extends State<TourismPage> {
                                 ),
                               ),
                             ),
-                            Icon(Icons.arrow_forward_ios,
-                                color: Colors.white, size: 16),
+                            Icon(
+                              Icons.arrow_forward_ios,
+                              color: Colors.white,
+                              size: 16,
+                            ),
                           ],
                         ),
                       ),
@@ -184,8 +205,9 @@ class _TourismPageState extends State<TourismPage> {
                         ),
                       )
                     else
-                      ..._attractions.map((attraction) =>
-                          _buildAttractionCard(attraction)),
+                      ..._attractions.map(
+                        (attraction) => _buildAttractionCard(attraction),
+                      ),
 
                     SizedBox(height: 24),
 
@@ -330,26 +352,31 @@ class _TourismPageState extends State<TourismPage> {
             ],
           ),
           SizedBox(height: 16),
-          ...suggestions.map((suggestion) => Padding(
-                padding: EdgeInsets.only(bottom: 12),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(Icons.check_circle_outline,
-                        color: Colors.white70, size: 20),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        suggestion,
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
-                          fontSize: 14,
-                        ),
+          ...suggestions.map(
+            (suggestion) => Padding(
+              padding: EdgeInsets.only(bottom: 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.check_circle_outline,
+                    color: Colors.white70,
+                    size: 20,
+                  ),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      suggestion,
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.9),
+                        fontSize: 14,
                       ),
                     ),
-                  ],
-                ),
-              )),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -357,7 +384,7 @@ class _TourismPageState extends State<TourismPage> {
 
   Widget _buildAttractionCard(TouristAttraction attraction) {
     final isFavorite = _favoriteIds.contains(attraction.id);
-    
+
     return GestureDetector(
       onTap: () async {
         await Navigator.push(
@@ -412,7 +439,8 @@ class _TourismPageState extends State<TourismPage> {
                         } else {
                           await _favoriteService.addFavorite(attraction.id);
                         }
-                        final favoriteIds = await _favoriteService.getFavoriteIds();
+                        final favoriteIds = await _favoriteService
+                            .getFavoriteIds();
                         setState(() {
                           _favoriteIds = favoriteIds.toSet();
                         });
@@ -462,32 +490,32 @@ class _TourismPageState extends State<TourismPage> {
                   Row(
                     children: [
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           _getCategoryLabel(attraction.category),
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                          ),
+                          style: TextStyle(color: Colors.white, fontSize: 11),
                         ),
                       ),
                       SizedBox(width: 8),
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           _getSeasonLabel(attraction.bestSeason),
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                          ),
+                          style: TextStyle(color: Colors.white, fontSize: 11),
                         ),
                       ),
                       Spacer(),
@@ -498,7 +526,11 @@ class _TourismPageState extends State<TourismPage> {
                           if (snapshot.hasData && snapshot.data! > 0) {
                             return Row(
                               children: [
-                                Icon(Icons.star, color: Colors.yellow, size: 16),
+                                Icon(
+                                  Icons.star,
+                                  color: Colors.yellow,
+                                  size: 16,
+                                ),
                                 SizedBox(width: 4),
                                 Text(
                                   snapshot.data!.toStringAsFixed(1),
@@ -528,7 +560,7 @@ class _TourismPageState extends State<TourismPage> {
   Future<void> _openGoogleMaps(TouristAttraction attraction) async {
     final lat = attraction.latitude;
     final lng = attraction.longitude;
-    
+
     // Thử nhiều cách mở bản đồ
     List<String> urls = [
       // Google Maps app (Android)
@@ -546,10 +578,7 @@ class _TourismPageState extends State<TourismPage> {
       try {
         final uri = Uri.parse(url);
         if (await canLaunchUrl(uri)) {
-          await launchUrl(
-            uri,
-            mode: LaunchMode.externalApplication,
-          );
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
           launched = true;
           break;
         }
@@ -644,4 +673,3 @@ class _TourismPageState extends State<TourismPage> {
     }
   }
 }
-
