@@ -55,16 +55,17 @@ class _AttractionDetailPageState extends State<AttractionDetailPage> {
   Future<void> _openGoogleMaps() async {
     final lat = widget.attraction.latitude;
     final lng = widget.attraction.longitude;
+    final name = Uri.encodeComponent(widget.attraction.name);
     
-    // Thử nhiều cách mở bản đồ
+    // Thử nhiều cách mở bản đồ (ưu tiên app, sau đó web)
     List<String> urls = [
-      // Google Maps app (Android)
-      'geo:$lat,$lng?q=$lat,$lng(${Uri.encodeComponent(widget.attraction.name)})',
-      // Google Maps app (iOS)
+      // Google Maps app (Android) - geo scheme
+      'geo:$lat,$lng?q=$lat,$lng($name)',
+      // Google Maps app (Android/iOS) - comgooglemaps scheme
       'comgooglemaps://?q=$lat,$lng&center=$lat,$lng&zoom=14',
-      // Google Maps web
-      'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
-      // Fallback: Google Maps web với tên địa điểm
+      // Google Maps web với tên địa điểm
+      'https://www.google.com/maps/search/?api=1&query=$lat,$lng&query_place_id=$name',
+      // Fallback: Google Maps web đơn giản
       'https://www.google.com/maps?q=$lat,$lng',
     ];
 
@@ -72,13 +73,17 @@ class _AttractionDetailPageState extends State<AttractionDetailPage> {
     for (String url in urls) {
       try {
         final uri = Uri.parse(url);
-        if (await canLaunchUrl(uri)) {
+        // Thử mở trực tiếp, không kiểm tra canLaunchUrl vì có thể trả về sai
+        try {
           await launchUrl(
             uri,
             mode: LaunchMode.externalApplication,
           );
           launched = true;
           break;
+        } catch (e) {
+          // Nếu không mở được, thử URL tiếp theo
+          continue;
         }
       } catch (e) {
         // Tiếp tục thử URL tiếp theo
@@ -90,7 +95,7 @@ class _AttractionDetailPageState extends State<AttractionDetailPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Không thể mở bản đồ. Vui lòng cài đặt Google Maps.'),
+            content: Text('Không thể mở bản đồ. Vui lòng cài đặt Google Maps hoặc trình duyệt web.'),
             duration: Duration(seconds: 3),
           ),
         );
