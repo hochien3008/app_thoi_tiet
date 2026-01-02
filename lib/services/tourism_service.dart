@@ -646,55 +646,281 @@ class TourismService {
     return _attractions;
   }
 
-  // Gợi ý hoạt động ngoài trời dựa trên thời tiết
-  static List<String> getActivitySuggestions(Weather weather) {
+  // Gợi ý hoạt động ngoài trời dựa trên thời tiết và địa điểm (phiên bản phong phú)
+  static List<String> getActivitySuggestions(Weather weather, {String? cityName, List<TouristAttraction>? attractions}) {
     final suggestions = <String>[];
     final condition = weather.mainCondition.toLowerCase();
     final temp = weather.temperature;
     final windSpeed = weather.windSpeed;
+    final humidity = weather.humidity;
 
-    // Dựa trên nhiệt độ
-    if (temp >= 25 && temp <= 35) {
+    // Dựa trên nhiệt độ - Nhiệt độ cao (30-40°C)
+    if (temp >= 30 && temp <= 40) {
+      if (condition.contains('clear') || condition.contains('sun')) {
+        suggestions.add('🏖️ Tắm biển - Thời tiết nắng nóng, lý tưởng cho biển');
+        suggestions.add('💧 Bơi lội - Giải nhiệt trong hồ bơi');
+        suggestions.add('🌴 Nghỉ dưỡng dưới bóng cây - Tránh nắng nóng');
+        suggestions.add('🍹 Thưởng thức đồ uống mát - Tại quán cà phê có điều hòa');
+        suggestions.add('🌅 Ngắm hoàng hôn - Thời điểm mát mẻ hơn');
+      }
+    }
+
+    // Dựa trên nhiệt độ - Nhiệt độ ấm (25-30°C)
+    if (temp >= 25 && temp < 30) {
       if (condition.contains('clear') || condition.contains('sun')) {
         suggestions.add('🏖️ Tắm biển - Thời tiết nắng đẹp, nhiệt độ lý tưởng');
         suggestions.add('🏃 Chạy bộ buổi sáng - Nhiệt độ vừa phải');
         suggestions.add('🚴 Đạp xe - Gió nhẹ, trời quang');
+        suggestions.add('🏐 Chơi thể thao ngoài trời - Bóng chuyền, cầu lông');
+        suggestions.add('🎣 Câu cá - Thời tiết dễ chịu');
+        suggestions.add('🚣 Chèo thuyền - Hoạt động trên nước');
+        suggestions.add('🏄 Lướt sóng - Nếu có biển');
+        suggestions.add('🤿 Lặn biển - Khám phá đại dương');
       }
     }
 
-    if (temp >= 20 && temp <= 28) {
+    // Dựa trên nhiệt độ - Nhiệt độ mát (20-25°C)
+    if (temp >= 20 && temp < 25) {
       suggestions.add('🚶 Đi dạo - Thời tiết mát mẻ, dễ chịu');
       suggestions.add('📸 Chụp ảnh ngoài trời - Ánh sáng đẹp');
+      suggestions.add('🧗 Leo núi - Nhiệt độ lý tưởng cho hoạt động thể thao');
+      suggestions.add('🚴 Đạp xe địa hình - Khám phá thiên nhiên');
+      suggestions.add('🏕️ Cắm trại - Thời tiết hoàn hảo');
+      suggestions.add('🔥 Tổ chức BBQ ngoài trời - Thời tiết mát mẻ');
+      suggestions.add('🎨 Vẽ tranh ngoài trời - Cảm hứng từ thiên nhiên');
+      suggestions.add('📚 Đọc sách trong công viên - Không gian yên tĩnh');
     }
 
-    if (temp < 20) {
+    // Dựa trên nhiệt độ - Nhiệt độ lạnh (15-20°C)
+    if (temp >= 15 && temp < 20) {
+      suggestions.add('☕ Thưởng thức cà phê nóng - Tại quán có view đẹp');
+      suggestions.add('🍲 Thưởng thức lẩu - Thời tiết lạnh phù hợp');
+      suggestions.add('🚶 Đi bộ đường dài - Nhiệt độ mát mẻ');
+      suggestions.add('🏛️ Tham quan bảo tàng - Tránh lạnh');
+      suggestions.add('🎭 Xem kịch, biểu diễn - Hoạt động trong nhà');
+      suggestions.add('🛍️ Mua sắm - Trong trung tâm thương mại');
+      suggestions.add('🧘 Yoga trong nhà - Giữ ấm cơ thể');
+    }
+
+    // Dựa trên nhiệt độ - Nhiệt độ rất lạnh (<15°C)
+    if (temp < 15) {
       suggestions.add('☕ Tham quan trong nhà - Thời tiết lạnh');
       suggestions.add('🏛️ Tham quan bảo tàng - Tránh lạnh');
+      suggestions.add('🍜 Thưởng thức món nóng - Phở, bún bò');
+      suggestions.add('🎬 Xem phim - Rạp chiếu phim');
+      suggestions.add('🛍️ Mua sắm trong trung tâm thương mại');
+      suggestions.add('🎮 Chơi game, giải trí trong nhà');
+      suggestions.add('📖 Tham quan thư viện - Không gian ấm áp');
+      suggestions.add('♨️ Tắm suối nước nóng - Nếu có');
     }
 
-    // Dựa trên điều kiện thời tiết
+    // Dựa trên điều kiện thời tiết - Mưa
     if (condition.contains('rain') || condition.contains('drizzle')) {
       suggestions.add('☔ Tham quan trong nhà - Trời mưa');
       suggestions.add('🏛️ Tham quan bảo tàng - Tránh mưa');
       suggestions.add('🛍️ Mua sắm trong trung tâm thương mại');
+      suggestions.add('🎨 Tham quan phòng tranh - Hoạt động trong nhà');
+      suggestions.add('🍜 Thưởng thức ẩm thực - Nhà hàng, quán ăn');
+      suggestions.add('🎬 Xem phim - Rạp chiếu phim');
+      suggestions.add('📚 Tham quan thư viện - Đọc sách');
+      suggestions.add('🎭 Xem biểu diễn - Nhà hát, sân khấu');
+      suggestions.add('🧘 Yoga, spa - Thư giãn trong nhà');
     }
 
-    if (condition.contains('cloud')) {
+    // Dựa trên điều kiện thời tiết - Mây
+    if (condition.contains('cloud') && !condition.contains('rain')) {
       suggestions.add('🚶 Đi dạo - Trời mát, có mây che nắng');
-      suggestions.add('📸 Chụp ảnh - Ánh sáng dịu nhẹ');
+      suggestions.add('📸 Chụp ảnh - Ánh sáng dịu nhẹ, không chói');
+      suggestions.add('🏃 Chạy bộ - Thời tiết mát mẻ');
+      suggestions.add('🚴 Đạp xe - Không nắng gắt');
+      suggestions.add('🧗 Leo núi - Nhiệt độ dễ chịu');
+      suggestions.add('🎣 Câu cá - Thời tiết lý tưởng');
+      suggestions.add('🏕️ Cắm trại - Không quá nắng');
+      suggestions.add('🌳 Tham quan công viên - Không gian mát mẻ');
     }
 
+    // Dựa trên điều kiện thời tiết - Nắng
+    if (condition.contains('clear') || condition.contains('sun')) {
+      if (temp >= 20 && temp <= 30) {
+        suggestions.add('☀️ Hoạt động ngoài trời - Thời tiết đẹp');
+        suggestions.add('🏖️ Tắm nắng - Nếu có biển');
+        suggestions.add('📸 Chụp ảnh - Ánh sáng tự nhiên đẹp');
+        suggestions.add('🌺 Ngắm hoa - Công viên, vườn hoa');
+        suggestions.add('🎪 Tham gia lễ hội ngoài trời - Nếu có');
+      }
+    }
+
+    // Dựa trên điều kiện thời tiết - Sương mù
+    if (condition.contains('fog') || condition.contains('mist')) {
+      suggestions.add('🌫️ Chụp ảnh sương mù - Cảnh quan huyền ảo');
+      suggestions.add('🚶 Đi bộ nhẹ nhàng - Cẩn thận tầm nhìn');
+      suggestions.add('☕ Thưởng thức cà phê - Chờ sương tan');
+      suggestions.add('🏛️ Tham quan trong nhà - Chờ thời tiết tốt hơn');
+    }
+
+    // Dựa trên tốc độ gió
     if (windSpeed > 15) {
       suggestions.add('⚠️ Tránh hoạt động ngoài trời - Gió mạnh');
+      suggestions.add('🏛️ Tham quan trong nhà - An toàn hơn');
+      suggestions.add('🛍️ Mua sắm - Trong trung tâm thương mại');
+    } else if (windSpeed >= 5 && windSpeed <= 15) {
+      suggestions.add('🪁 Thả diều - Gió vừa phải');
+      suggestions.add('⛵ Chèo thuyền buồm - Nếu có biển');
+      suggestions.add('🌬️ Tận hưởng gió mát - Hoạt động ngoài trời');
     }
 
-    // Gợi ý chung
-    if (suggestions.isEmpty) {
-      suggestions.add('🚶 Đi dạo khám phá thành phố');
-      suggestions.add('📸 Chụp ảnh lưu niệm');
+    // Dựa trên độ ẩm
+    if (humidity > 80) {
+      suggestions.add('💨 Tìm nơi thoáng mát - Độ ẩm cao');
+      suggestions.add('🏛️ Tham quan trong nhà có điều hòa');
+      suggestions.add('💧 Uống nhiều nước - Giữ cơ thể đủ nước');
+    } else if (humidity < 40) {
+      suggestions.add('💧 Uống nhiều nước - Độ ẩm thấp');
+      suggestions.add('🧴 Dưỡng ẩm da - Bảo vệ làn da');
     }
 
-    return suggestions;
+    // Gợi ý dựa trên địa điểm cụ thể
+    final cityNameLower = (cityName ?? weather.cityName).toLowerCase();
+    final attractionCategories = <String>{};
+    
+    // Phân tích loại địa điểm từ attractions
+    if (attractions != null && attractions.isNotEmpty) {
+      for (final attraction in attractions) {
+        attractionCategories.add(attraction.category);
+      }
+    }
+
+    // Gợi ý dựa trên loại địa điểm
+    if (attractionCategories.contains('beach')) {
+      if (temp >= 25 && !condition.contains('rain')) {
+        suggestions.add('🏖️ Tắm biển - Khám phá bãi biển tuyệt đẹp');
+        suggestions.add('🤿 Lặn biển, lặn ống thở - Khám phá đại dương');
+        suggestions.add('🏄 Lướt sóng - Thử thách với sóng biển');
+        suggestions.add('🏐 Chơi bóng chuyền bãi biển - Hoạt động vui vẻ');
+        suggestions.add('🌅 Ngắm bình minh/hoàng hôn trên biển - Cảnh đẹp tuyệt vời');
+        suggestions.add('🦀 Tìm cua, ốc trên bãi biển - Trải nghiệm thú vị');
+      }
+    }
+
+    if (attractionCategories.contains('mountain')) {
+      if (temp >= 15 && temp <= 25 && !condition.contains('rain')) {
+        suggestions.add('🧗 Leo núi, trekking - Chinh phục đỉnh cao');
+        suggestions.add('📸 Chụp ảnh phong cảnh núi - Cảnh quan hùng vĩ');
+        suggestions.add('🏕️ Cắm trại trên núi - Trải nghiệm thiên nhiên');
+        suggestions.add('🌄 Ngắm bình minh trên đỉnh núi - Khoảnh khắc đáng nhớ');
+        suggestions.add('🚴 Đạp xe địa hình - Khám phá đường núi');
+        suggestions.add('🌲 Đi bộ trong rừng - Hít thở không khí trong lành');
+      }
+    }
+
+    if (attractionCategories.contains('cultural')) {
+      suggestions.add('🏛️ Tham quan di tích lịch sử - Tìm hiểu văn hóa');
+      suggestions.add('📚 Tìm hiểu lịch sử địa phương - Mở rộng kiến thức');
+      suggestions.add('📸 Chụp ảnh kiến trúc cổ - Lưu giữ kỷ niệm');
+      suggestions.add('🎭 Xem biểu diễn văn hóa - Trải nghiệm nghệ thuật');
+      suggestions.add('🕯️ Thắp hương tại đền chùa - Cầu bình an');
+      if (!condition.contains('rain')) {
+        suggestions.add('🚶 Đi dạo quanh khu di tích - Khám phá từng góc');
+      }
+    }
+
+    if (attractionCategories.contains('urban')) {
+      suggestions.add('🛍️ Mua sắm tại chợ địa phương - Tìm quà lưu niệm');
+      suggestions.add('🍜 Thưởng thức ẩm thực đường phố - Hương vị địa phương');
+      suggestions.add('📸 Chụp ảnh phố cổ - Lưu giữ kỷ niệm');
+      suggestions.add('🚶 Đi bộ khám phá phố cổ - Trải nghiệm văn hóa');
+      suggestions.add('☕ Thưởng thức cà phê phố cổ - Không gian yên tĩnh');
+      suggestions.add('🎨 Tham quan phòng tranh, gallery - Nghệ thuật địa phương');
+    }
+
+    if (attractionCategories.contains('nature')) {
+      if (!condition.contains('rain')) {
+        suggestions.add('🌳 Đi bộ trong công viên - Hòa mình với thiên nhiên');
+        suggestions.add('📸 Chụp ảnh thiên nhiên - Cảnh quan tươi đẹp');
+        suggestions.add('🧘 Yoga ngoài trời - Thư giãn tinh thần');
+        suggestions.add('🐦 Quan sát chim chóc - Khám phá động vật hoang dã');
+        suggestions.add('🌸 Ngắm hoa, cây cảnh - Vẻ đẹp thiên nhiên');
+        suggestions.add('🚣 Chèo thuyền trên hồ - Trải nghiệm yên bình');
+      }
+    }
+
+    // Gợi ý dựa trên thành phố cụ thể
+    if (cityNameLower.contains('hà nội') || cityNameLower.contains('hanoi')) {
+      suggestions.add('🏛️ Tham quan Văn Miếu - Quốc Tử Giám - Di tích lịch sử');
+      suggestions.add('🚶 Đi bộ quanh Hồ Hoàn Kiếm - Trái tim thủ đô');
+      suggestions.add('🍜 Thưởng thức phở Hà Nội - Đặc sản nổi tiếng');
+      suggestions.add('☕ Uống cà phê trứng - Đặc trưng Hà Nội');
+      suggestions.add('🎭 Xem múa rối nước - Nghệ thuật truyền thống');
+    } else if (cityNameLower.contains('huế')) {
+      suggestions.add('🏛️ Tham quan Đại Nội - Di sản UNESCO');
+      suggestions.add('🚣 Đi thuyền trên sông Hương - Trải nghiệm lãng mạn');
+      suggestions.add('🍜 Thưởng thức cơm hến - Đặc sản Huế');
+      suggestions.add('🎭 Xem ca Huế trên sông - Nghệ thuật truyền thống');
+      suggestions.add('📸 Chụp ảnh áo dài tại lăng tẩm - Kỷ niệm đẹp');
+    } else if (cityNameLower.contains('đà nẵng') || cityNameLower.contains('da nang')) {
+      suggestions.add('🏖️ Tắm biển Mỹ Khê - Bãi biển đẹp nhất Việt Nam');
+      suggestions.add('🌉 Ngắm Cầu Rồng phun lửa - Biểu tượng Đà Nẵng');
+      suggestions.add('🚠 Đi cáp treo Bà Nà Hills - Trải nghiệm độc đáo');
+      suggestions.add('🍜 Thưởng thức mì Quảng - Đặc sản địa phương');
+      suggestions.add('🌅 Ngắm hoàng hôn trên biển - Cảnh đẹp tuyệt vời');
+    } else if (cityNameLower.contains('hội an') || cityNameLower.contains('hoi an')) {
+      suggestions.add('🏮 Đi dạo phố cổ Hội An - Đèn lồng rực rỡ');
+      suggestions.add('🎨 Làm đèn lồng - Trải nghiệm thủ công');
+      suggestions.add('🍜 Thưởng thức cao lầu - Đặc sản Hội An');
+      suggestions.add('📸 Chụp ảnh với đèn lồng - Kỷ niệm đẹp');
+      suggestions.add('🚣 Đi thuyền thả hoa đăng - Hoạt động lãng mạn');
+    } else if (cityNameLower.contains('nha trang')) {
+      suggestions.add('🏖️ Tắm biển Nha Trang - Bãi biển dài đẹp');
+      suggestions.add('🚠 Đi cáp treo Vinpearl - Trải nghiệm thú vị');
+      suggestions.add('🤿 Lặn biển ngắm san hô - Khám phá đại dương');
+      suggestions.add('🍜 Thưởng thức bánh canh chả cá - Đặc sản địa phương');
+      suggestions.add('🌅 Ngắm bình minh trên biển - Cảnh đẹp tuyệt vời');
+    } else if (cityNameLower.contains('đà lạt') || cityNameLower.contains('da lat')) {
+      suggestions.add('🌸 Ngắm hoa Đà Lạt - Thành phố ngàn hoa');
+      suggestions.add('🚴 Đạp xe quanh hồ Xuân Hương - Không gian yên bình');
+      suggestions.add('☕ Thưởng thức cà phê Đà Lạt - Hương vị đặc trưng');
+      suggestions.add('🍓 Tham quan vườn dâu tây - Trải nghiệm nông nghiệp');
+      suggestions.add('📸 Chụp ảnh tại Thung lũng Tình Yêu - Cảnh đẹp lãng mạn');
+      suggestions.add('🏛️ Tham quan Dinh Bảo Đại - Di tích lịch sử');
+    } else if (cityNameLower.contains('sapa')) {
+      suggestions.add('🧗 Leo núi Fansipan - Nóc nhà Đông Dương');
+      suggestions.add('🏘️ Tham quan bản làng dân tộc - Văn hóa địa phương');
+      suggestions.add('📸 Chụp ảnh ruộng bậc thang - Cảnh quan độc đáo');
+      suggestions.add('🚶 Đi bộ trekking - Khám phá thiên nhiên');
+      suggestions.add('🛍️ Mua đồ thủ công dân tộc - Quà lưu niệm');
+      suggestions.add('🍜 Thưởng thức thắng cố - Đặc sản vùng cao');
+    } else if (cityNameLower.contains('hồ chí minh') || cityNameLower.contains('ho chi minh') || cityNameLower.contains('sài gòn') || cityNameLower.contains('saigon')) {
+      suggestions.add('🛍️ Mua sắm tại Chợ Bến Thành - Trải nghiệm địa phương');
+      suggestions.add('☕ Thưởng thức cà phê Sài Gòn - Văn hóa cà phê');
+      suggestions.add('🍜 Thưởng thức phở, bánh mì - Ẩm thực đường phố');
+      suggestions.add('🚶 Đi bộ phố đi bộ Nguyễn Huệ - Không gian sầm uất');
+      suggestions.add('🏛️ Tham quan Dinh Độc Lập - Di tích lịch sử');
+      suggestions.add('🌃 Ngắm Sài Gòn về đêm - Thành phố không ngủ');
+    }
+
+    // Gợi ý chung - Luôn có sẵn
+    suggestions.add('🚶 Đi dạo khám phá thành phố');
+    suggestions.add('📸 Chụp ảnh lưu niệm');
+    suggestions.add('🍜 Thưởng thức ẩm thực địa phương');
+    suggestions.add('🎁 Mua quà lưu niệm');
+    suggestions.add('📱 Check-in tại các địa điểm nổi tiếng');
+
+    // Loại bỏ trùng lặp và giới hạn số lượng
+    final uniqueSuggestions = suggestions.toSet().toList();
+    
+    // Sắp xếp: ưu tiên các gợi ý cụ thể trước, gợi ý chung sau
+    uniqueSuggestions.sort((a, b) {
+      final aIsGeneral = a.contains('khám phá') || a.contains('lưu niệm') || 
+                         a.contains('ẩm thực') || a.contains('quà');
+      final bIsGeneral = b.contains('khám phá') || b.contains('lưu niệm') || 
+                         b.contains('ẩm thực') || b.contains('quà');
+      if (aIsGeneral && !bIsGeneral) return 1;
+      if (!aIsGeneral && bIsGeneral) return -1;
+      return 0;
+    });
+
+    // Giới hạn tối đa 10 gợi ý
+    return uniqueSuggestions.take(10).toList();
   }
 
   // Kiểm tra thời tiết có lý tưởng cho du lịch không

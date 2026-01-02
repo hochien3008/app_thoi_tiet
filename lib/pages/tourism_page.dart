@@ -326,7 +326,11 @@ class _TourismPageState extends State<TourismPage> {
   Widget _buildActivitySuggestions() {
     if (_currentWeather == null) return SizedBox.shrink();
 
-    final suggestions = TourismService.getActivitySuggestions(_currentWeather!);
+    final suggestions = TourismService.getActivitySuggestions(
+      _currentWeather!,
+      cityName: _selectedCity,
+      attractions: _attractions,
+    );
 
     return Container(
       padding: EdgeInsets.all(20),
